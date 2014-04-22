@@ -72,12 +72,32 @@ function getPosition(event) {
 	
 	draw();
     console.log("x: " + x + "  y: " + y);
-    var selectedBox = getTopLeftCorner(x, y);
-    //drawSelectedBoxOutline(x,y);
+    var selectedBoxCoords = getTopLeftCorner(x, y);
+
+    drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
 }
 
 function getTopLeftCorner(x, y){
+	var topLeft = {
+		x: GRID_PADDING,
+		y: GRID_PADDING
+	}
+
+	var topX = Math.floor(x/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING;
+	var topY = Math.floor(y/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING;
+
+	topLeft.x = topX;
+	topLeft.y = topY;
 	
+
+	console.log("topX: "+ topX+ " topY: "+ topY);
+
+	return topLeft;
+}
+
+function drawSelectedBoxOutline(x, y){
+	_ctx.strokeStyle = "#FFE7BA";
+	_ctx.strokeRect(x+1,y+1,SQUARE_LENGTH,SQUARE_LENGTH);
 }
 
 function drawBlocks(){
