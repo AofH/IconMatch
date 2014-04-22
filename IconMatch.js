@@ -11,7 +11,14 @@ var GRID_PADDING = 10;
 var CANVAS_WIDTH = GRID_WIDTH_BOUND + (GRID_PADDING * 2) + 1;
 var CANVAS_HEIGHT = GRID_HEIGHT_BOUND + (GRID_PADDING * 2) + 1;
 
-var BOARD_SIZE = 4;
+var BOARD_SIZE = 8;
+
+var EMPTY = 0;
+
+var EASY = 4;
+var MEDIUM = 6;
+var HARD = 8;
+
 
 var WHITE = "rgb(255,255,255)";
 var RED = "rgb(255, 0, 0)";
@@ -27,6 +34,7 @@ var BURNTUMBER = "rgb(138, 52, 36)";
 
 var BOX_SELECTION_COLOR = "#FF0000";
 
+var COLOR_ARRAY = [WHITE, ORANGE,YELLOW, GREEN, CYAN, LIGHTBLUE, BLUE, PURPLE, PINK, BURNTUMBER];
 
 
 var _canvas;
@@ -43,36 +51,19 @@ function init(){
 
 	_canvas.addEventListener("mousedown", getPosition, false);
 
-	initBlocks();
+	initBoard();
 
 
 	_ctx = _canvas.getContext('2d');
 	draw();
 }
 
-function initBlocks(){
-	_board = [];
-	var coloredYCount = 0;
-	for(var i = 0; i< GRID_SIZE; i++) {
-		var currentRow = new Array();
-		var coloredXCount = 0;
-		for(var j = 0; j< GRID_SIZE; j++) {
+function initBoard(){
+	
+	_board = new Board(EASY);
+	_board.generateInteriorBoard();
+	_board.generateWholeBoard();
 
-			if(j >= ((GRID_SIZE - BOARD_SIZE) / 2) && coloredXCount < BOARD_SIZE && coloredYCount < BOARD_SIZE && i >= ((GRID_SIZE - BOARD_SIZE) / 2)) {
-				console.log("Pushing Blue");
-				currentRow.push(new Block(1,BLUE));
-				coloredXCount++;
-			} else {
-				currentRow.push(new Block(0, WHITE));
-			}	
-		}
-
- 		if(i >= ((GRID_SIZE - BOARD_SIZE) / 2)  && coloredYCount < BOARD_SIZE) {
- 			coloredYCount++;
- 		}
-
-		_board[i] = currentRow;
-	}
 }
 
 
@@ -131,16 +122,17 @@ function drawSelectedBoxOutline(x, y){
 
 function drawBlocks(){
 	
+	var currentBoard = _board.fullBoard;
+
+
 	for(var i = 0; i< GRID_SIZE; i++) {
-		var row = _board[i];
+		var row = currentBoard[i];
 		for(var j = 0; j< GRID_SIZE; j++) {
 			_ctx.fillStyle = row[j].color;
 			_ctx.fillRect(GRID_PADDING + i * SQUARE_LENGTH, GRID_PADDING + j * SQUARE_LENGTH, SQUARE_LENGTH, SQUARE_LENGTH);
 			
 		}
 	}
-
-
 }
 
 function drawGrid(){
