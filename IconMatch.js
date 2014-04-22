@@ -58,7 +58,7 @@ function initBlocks(){
 		var coloredXCount = 0;
 		for(var j = 0; j< GRID_SIZE; j++) {
 
-			if(j >= BOARD_SIZE -1  && coloredXCount < BOARD_SIZE && coloredYCount < BOARD_SIZE && i >= BOARD_SIZE -1) {
+			if(j >= ((GRID_SIZE - BOARD_SIZE) / 2) && coloredXCount < BOARD_SIZE && coloredYCount < BOARD_SIZE && i >= ((GRID_SIZE - BOARD_SIZE) / 2)) {
 				console.log("Pushing Blue");
 				currentRow.push(new Block(1,BLUE));
 				coloredXCount++;
@@ -67,7 +67,7 @@ function initBlocks(){
 			}	
 		}
 
- 		if(i >= BOARD_SIZE - 1  && coloredYCount < BOARD_SIZE) {
+ 		if(i >= ((GRID_SIZE - BOARD_SIZE) / 2)  && coloredYCount < BOARD_SIZE) {
  			coloredYCount++;
  		}
 
