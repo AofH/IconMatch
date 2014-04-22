@@ -83,8 +83,15 @@ function getTopLeftCorner(x, y){
 		y: GRID_PADDING
 	}
 
+	x -= GRID_PADDING * 2 - 8; //The 8 is the offset that makes the box detection work correctly
+	y -= GRID_PADDING * 2 - 8;
+
 	var topX = Math.floor(x/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING;
 	var topY = Math.floor(y/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING;
+
+
+	console.log(Math.floor(x/SQUARE_LENGTH));
+	console.log(Math.floor(y/SQUARE_LENGTH));
 
 	topLeft.x = topX;
 	topLeft.y = topY;
@@ -96,7 +103,7 @@ function getTopLeftCorner(x, y){
 }
 
 function drawSelectedBoxOutline(x, y){
-	_ctx.strokeStyle = "#FFE7BA";
+	_ctx.strokeStyle = "#FF0000";
 	_ctx.strokeRect(x+1,y+1,SQUARE_LENGTH,SQUARE_LENGTH);
 }
 
