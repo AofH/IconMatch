@@ -1,5 +1,5 @@
 
-
+// 7, 14, 12, 2, 0, 8, 5, 10, 4, 11, 15, 6, 13, 9, 1, 3
 
 
 var SQUARE_LENGTH = 50;
@@ -34,12 +34,13 @@ var BURNTUMBER = "rgb(138, 52, 36)";
 
 var BOX_SELECTION_COLOR = "#FF0000";
 
-var COLOR_ARRAY = [WHITE, ORANGE,YELLOW, GREEN, CYAN, LIGHTBLUE, BLUE, PURPLE, PINK, BURNTUMBER];
+var COLOR_ARRAY = [ORANGE,YELLOW, GREEN, CYAN, LIGHTBLUE, BLUE, PURPLE, PINK, BURNTUMBER];
 
 
 var _canvas;
 var _ctx;
 var _board;
+var _selectedBox;
 
 function init(){
 
@@ -50,6 +51,13 @@ function init(){
 	_canvas.style.border = "1px solid black";
 
 	_canvas.addEventListener("mousedown", getPosition, false);
+
+	_selectedBox = {
+		selected:false,
+		x:GRID_PADDING,
+		y:GRID_PADDING 
+    }
+
 
 	initBoard();
 
@@ -72,6 +80,11 @@ function draw() {
 	drawBlocks();
 	drawGrid();
 	
+	if(_selectedBox.selected === true){
+
+		var selectedBoxCoords = getTopLeftCorner(_selectedBox.x, _selectedBox.y);
+		drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
+	}
 	
 
 }
@@ -88,24 +101,40 @@ function getPosition(event) {
         x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
         y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
     }
-
+    //Apply offsets to the x y variables
     x -= _canvas.offsetLeft;
     y -= _canvas.offsetTop;
-	
+	//Custom offset so that the box detection works correctly
+	x -= GRID_PADDING * 2 - 8; //Wierd magic 8 which makes detection work 100%
+	y -= GRID_PADDING * 2 - 8;
+
+
  	// If the mouse pointer is inside the border of the grid, draw.
     if ((x < CANVAS_WIDTH - GRID_PADDING * 2 && x > GRID_PADDING*2) && (y < CANVAS_HEIGHT - GRID_PADDING * 2 && y > GRID_PADDING*2)) {
-		draw();
+	    if(_board.isValidBox(x,y)){
+	    	if(_selectedBox.selected === false) {
+		    	_selectedBox.selected = true;
+		    	_selectedBox.x = x;
+		    	_selectedBox.y = y;
 
-	    var selectedBoxCoords = getTopLeftCorner(x, y);
+		    	
+	    	} else {
+	    		_selectedBox.selected = false;
+	    		//compare currentSelectoin
 
-	    drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
+	    		var validMove = _board.compareBoxes(x,y, _selectedBox.x, _selectedBox.y);
+
+
+	    	}
+	    }
+	    draw();
     }
 }
 
 function getTopLeftCorner(x, y){
 	//Add the external Padding offset
-	x -= GRID_PADDING * 2 - 8; //The 8 is the offset that makes the box detection work correctly
-	y -= GRID_PADDING * 2 - 8;
+	//x -= GRID_PADDING * 2 - 8; //The 8 is the offset that makes the box detection work correctly
+	//y -= GRID_PADDING * 2 - 8;
 
 	var topLeft = {
 		x:  Math.floor(x/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING,

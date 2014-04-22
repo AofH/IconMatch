@@ -35,11 +35,11 @@ Board.prototype.generateInteriorBoard = function () {
 	}
 
 	randomNumberArray = shuffle(randomNumberArray);
-	console.log(randomNumberArray);
+	
 
 	for(var i = 0; i < randomNumberArray.length; i +=2 )
 	{
-		var colorId = Math.floor((Math.random()*COLOR_ARRAY.length) + 1);
+		var colorId = Math.floor((Math.random()*COLOR_ARRAY.length));
 		
 		var firstX = Math.floor(randomNumberArray[i]/this.size);
 		var firstY = randomNumberArray[i] % this.size;
@@ -47,52 +47,10 @@ Board.prototype.generateInteriorBoard = function () {
 		var secondX = Math.floor(randomNumberArray[i + 1]/this.size);
 		var secondY = randomNumberArray[i + 1] % this.size;
 
-		this.interiorBoard[firstX][firstY] = new Block(colorId, COLOR_ARRAY[colorId]);
-		this.interiorBoard[secondX][secondY] = new Block(colorId, COLOR_ARRAY[colorId]);
+		this.interiorBoard[firstX][firstY] = new Block(colorId + 1, COLOR_ARRAY[colorId]);
+		this.interiorBoard[secondX][secondY] = new Block(colorId + 1, COLOR_ARRAY[colorId]);
 	}
-
-	console.log(this.interiorBoard);
-	/*
-	for(var i = 0; i < this.size * this.size / 2; i++) {
-		var firstNotColored = true;
-		var firstX = Math.floor((Math.random()*this.size) );
-		var firstY = Math.floor((Math.random()*this.size) );
-
-		var secondNotColored = true;
-		var secondX = Math.floor((Math.random()*this.size) );
-		var secondY = Math.floor((Math.random()*this.size) );
-
-		var colorId = Math.floor((Math.random()*COLOR_ARRAY) + 1);
-
-
-		console.log(firstX);
-		console.log(firstY);
-		console.log(this.interiorBoard[firstX][firstY]);
-
-
-		while(firstNotColored) 
-		{
-			if (this.interiorBoard[firstX][firstY].id === EMPTY) {
-				this.interiorBoard[firstX][firstY] = new Block(colorId, COLOR_ARRAY[colorId]);
-				fisrtNotColored = false;
-			} else {
-				var firstX = Math.floor((Math.random()*this.size) );
-				var firstY = Math.floor((Math.random()*this.size) );
-			}
-		}
-
-		while(secondNotColored) 
-		{
-			if (this.interiorBoard[secondX][secondY].id === EMPTY) {
-				this.interiorBoard[secondX][secondY] = new Block(colorId, COLOR_ARRAY[colorId]);
-				secondNotColored = false;
-			} else {
-				var secondX = Math.floor((Math.random()*this.size) );
-				var secondY = Math.floor((Math.random()*this.size) );
-			}
-		}
-
-	}*/
+	
 }
 
 Board.prototype.generateWholeBoard = function (){
@@ -105,9 +63,7 @@ Board.prototype.generateWholeBoard = function (){
 		for(var j = 0; j< GRID_SIZE; j++) {
 
 			if(j >= gridBorderSize && coloredXCount < this.size && coloredYCount < this.size && i >= gridBorderSize) {
-				console.log(gridBorderSize + " " + i);
-				console.log(i - this.size + (GRID_SIZE - 3 * gridBorderSize));
-
+				
 				var translatedX = i - this.size + (GRID_SIZE - 3 * gridBorderSize);
 				var translatedY = j - this.size + (GRID_SIZE - 3 * gridBorderSize);
 
@@ -124,4 +80,42 @@ Board.prototype.generateWholeBoard = function (){
 
 		this.fullBoard[i] = currentRow;
 	}
+}
+
+Board.prototype.isValidBox = function (x, y) {
+	var boxX = Math.floor(x/SQUARE_LENGTH);
+	var boxY = Math.floor(y/SQUARE_LENGTH);
+
+	if ( this.fullBoard[boxX][boxY].id > EMPTY) {
+		return true;
+	}
+
+
+	return false;
+}
+
+Board.prototype.compareBoxes = function (x,y, sx, sy) {
+	var firstBoxX = Math.floor(x/SQUARE_LENGTH);
+	var firstBoxY = Math.floor(y/SQUARE_LENGTH);
+	var secondBoxX = Math.floor(sx/SQUARE_LENGTH);
+	var secondBoxY = Math.floor(sy/SQUARE_LENGTH);
+
+	//Check to see if they are the same box
+	if(firstBoxX == secondBoxX && firstBoxY == secondBoxY) {
+		return false;
+	}
+
+	if (this.fullBoard[firstBoxX][firstBoxY].id === this.fullBoard[secondBoxX][secondBoxY].id){
+		console.log("Both boxes are the same color");
+
+
+		this.fullBoard[firstBoxX][firstBoxY] = new Block(EMPTY, WHITE);
+		this.fullBoard[secondBoxX][secondBoxY] = new Block(EMPTY, WHITE);
+		return true;
+
+	}
+
+	return false;
+
+
 }
