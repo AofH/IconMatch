@@ -4,13 +4,16 @@
 
 var SQUARE_LENGTH = 50;
 var GRID_SIZE = 10;
-var GRID_WIDTH_BOUND = SQUARE_LENGTH * GRID_SIZE; // Calculates how big the grid needs to be taking into account square size and the 1 px border size
-var GRID_HEIGHT_BOUND = SQUARE_LENGTH * GRID_SIZE; // Same as above
+var GRID_WIDTH_BOUND = SQUARE_LENGTH * GRID_SIZE; 
+var GRID_HEIGHT_BOUND = SQUARE_LENGTH * GRID_SIZE; 
 var GRID_PADDING = 10;
 
 var CANVAS_WIDTH = GRID_WIDTH_BOUND + (GRID_PADDING * 2) + 1;
 var CANVAS_HEIGHT = GRID_HEIGHT_BOUND + (GRID_PADDING * 2) + 1;
 
+var BOARD_SIZE = 4;
+
+var WHITE = "rgb(255,255,255)";
 var RED = "rgb(255, 0, 0)";
 var ORANGE = "rgb(255, 128, 0)";
 var YELLOW = "rgb(255, 255, 0)";
@@ -22,12 +25,13 @@ var PURPLE = "rgb(127, 0 , 255)";
 var PINK = "rgb(255, 0 , 127)";
 var BURNTUMBER = "rgb(138, 52, 36)";
 
-var BOX_SELECTION_COLOR = BURNTUMBER;
+var BOX_SELECTION_COLOR = "#FF0000";
 
 
 
 var _canvas;
 var _ctx;
+var _board;
 
 function init(){
 
@@ -39,9 +43,36 @@ function init(){
 
 	_canvas.addEventListener("mousedown", getPosition, false);
 
+	initBlocks();
+
 
 	_ctx = _canvas.getContext('2d');
 	draw();
+}
+
+function initBlocks(){
+	_board = [];
+	var coloredYCount = 0;
+	for(var i = 0; i< GRID_SIZE; i++) {
+		var currentRow = new Array();
+		var coloredXCount = 0;
+		for(var j = 0; j< GRID_SIZE; j++) {
+
+			if(j >= BOARD_SIZE -1  && coloredXCount < BOARD_SIZE && coloredYCount < BOARD_SIZE && i >= BOARD_SIZE -1) {
+				console.log("Pushing Blue");
+				currentRow.push(new Block(1,BLUE));
+				coloredXCount++;
+			} else {
+				currentRow.push(new Block(0, WHITE));
+			}	
+		}
+
+ 		if(i >= BOARD_SIZE - 1  && coloredYCount < BOARD_SIZE) {
+ 			coloredYCount++;
+ 		}
+
+		_board[i] = currentRow;
+	}
 }
 
 
@@ -70,49 +101,46 @@ function getPosition(event) {
     x -= _canvas.offsetLeft;
     y -= _canvas.offsetTop;
 	
-	draw();
-    console.log("x: " + x + "  y: " + y);
-    var selectedBoxCoords = getTopLeftCorner(x, y);
+ 	// If the mouse pointer is inside the border of the grid, draw.
+    if ((x < CANVAS_WIDTH - GRID_PADDING * 2 && x > GRID_PADDING*2) && (y < CANVAS_HEIGHT - GRID_PADDING * 2 && y > GRID_PADDING*2)) {
+		draw();
 
-    drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
+	    var selectedBoxCoords = getTopLeftCorner(x, y);
+
+	    drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
+    }
 }
 
 function getTopLeftCorner(x, y){
-	var topLeft = {
-		x: GRID_PADDING,
-		y: GRID_PADDING
-	}
-
+	//Add the external Padding offset
 	x -= GRID_PADDING * 2 - 8; //The 8 is the offset that makes the box detection work correctly
 	y -= GRID_PADDING * 2 - 8;
 
-	var topX = Math.floor(x/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING;
-	var topY = Math.floor(y/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING;
-
-
-	console.log(Math.floor(x/SQUARE_LENGTH));
-	console.log(Math.floor(y/SQUARE_LENGTH));
-
-	topLeft.x = topX;
-	topLeft.y = topY;
-	
-
-	console.log("topX: "+ topX+ " topY: "+ topY);
+	var topLeft = {
+		x:  Math.floor(x/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING,
+		y: Math.floor(y/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING
+	}
 
 	return topLeft;
 }
 
 function drawSelectedBoxOutline(x, y){
-	_ctx.strokeStyle = "#FF0000";
+	_ctx.strokeStyle = BOX_SELECTION_COLOR;
 	_ctx.strokeRect(x+1,y+1,SQUARE_LENGTH,SQUARE_LENGTH);
 }
 
 function drawBlocks(){
-	_ctx.fillStyle = LIGHTBLUE;
-	_ctx.fillRect(GRID_PADDING, GRID_PADDING, SQUARE_LENGTH, SQUARE_LENGTH);
+	
+	for(var i = 0; i< GRID_SIZE; i++) {
+		var row = _board[i];
+		for(var j = 0; j< GRID_SIZE; j++) {
+			_ctx.fillStyle = row[j].color;
+			_ctx.fillRect(GRID_PADDING + i * SQUARE_LENGTH, GRID_PADDING + j * SQUARE_LENGTH, SQUARE_LENGTH, SQUARE_LENGTH);
+			
+		}
+	}
 
-	_ctx.fillStyle = BLUE;
-	_ctx.fillRect(GRID_PADDING ,SQUARE_LENGTH + GRID_PADDING,SQUARE_LENGTH,SQUARE_LENGTH);
+
 }
 
 function drawGrid(){
