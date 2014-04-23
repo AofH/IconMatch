@@ -1,7 +1,120 @@
+
+var BEND_NUMBER = 3;
+
+var VERTICAL = "v";
+var HORIZONTAL = "h";
+
+var MOVE_TOP = "t";
+var MOVE_BOTTOM = "b";
+var MOVE_RIGHT = "r";
+var MOVE_LEFT = "l";
+
+
+
 function Board(size){
 	this.size = size;
+	this.gridBorderSize = ((GRID_SIZE - this.size) / 2);
 	this.interiorBoard = new Array();
 	this.fullBoard = new Array();
+
+
+	
+	this.validMove = function (x, y, objX, objY, numBends, direction){
+		console.log("Valid Move");
+		console.log("x: "+x+" y: "+y+ " numBends:"+numBends+" d: "+direction);
+ 
+		var tempNumBends = numBends;
+		//If we are one box away from the objective, check to see if the line bends. 
+		// if it does increment the numBends by one and check to see if it exceeds the bend number
+		// if it doesn't then return true we found a second box of the same color within the bend Number bends
+		if(x + 1 === objX && y === objY && numBends <= BEND_NUMBER){
+			if(direction !== MOVE_RIGHT && numBends + 1 <= BEND_NUMBER) {
+				console.log("found Box");
+				return true;
+			} else if (direction === MOVE_RIGHT && numBends <= BEND_NUMBER) {
+				console.log("found Box");
+				return true;
+			}
+		} else if ( x - 1 === objX && y === objY && numBends <= BEND_NUMBER) {
+			if(direction !== MOVE_LEFT && numBends + 1 <= BEND_NUMBER) {
+				console.log("found Box");
+				return true;
+			} else if (direction === MOVE_LEFT && numBends <= BEND_NUMBER) {
+				console.log("found Box");
+				return true;
+			}
+		} else if ( x === objX && y + 1 === objY && numBends <= BEND_NUMBER) {
+			if(direction !== MOVE_BOTTOM && numBends + 1 <= BEND_NUMBER) {
+				console.log("found Box");
+				return true;
+			} else if (direction === MOVE_BOTTOM && numBends <= BEND_NUMBER) {
+				console.log("found Box");
+				return true;
+			}
+		} else if ( x === objX && y - 1 === objY && numBends <= BEND_NUMBER) {
+			if(direction !== MOVE_TOP && numBends + 1 <= BEND_NUMBER) {
+				console.log("found Box");
+				return true;
+			} else if (direction === MOVE_TOP && numBends <= BEND_NUMBER) {
+				console.log("found Box");
+				return true;
+			}
+		}
+
+		//If the number of bends exceeds the maximum allowed then we didn't find a matching box.
+		if (numBends > BEND_NUMBER) {
+			console.log("Bend Number exceeded");
+			return false;
+		}
+		
+		var tempNumBends = 0;
+		var move = false;
+		//check top
+		if(y - 1 > this.gridBorderSize - 1 && this.fullBoard[x][y - 1].id === EMPTY && direction !== MOVE_BOTTOM){
+			console.log("Moving Top");
+			//check to see if the line bends
+			if(direction !== MOVE_TOP) {
+				tempNumBends = numBends + 1;
+			} else {
+				tempNumBends = numBends;
+			}
+
+			move = this.validMove(x,y - 1, objX , objY ,tempNumBends,MOVE_TOP);
+		}
+		//check right			
+		if(!move && x + 1 < this.gridBorderSize + this.size + 1 && this.fullBoard[x + 1][y].id === EMPTY && direction !== MOVE_LEFT){
+			console.log("Moving Right")
+			if(direction !== MOVE_RIGHT) {
+				tempNumBends = numBends + 1;
+			} else {
+				tempNumBends = numBends;
+			}
+
+			move = move = this.validMove(x + 1,y,objX,objY,tempNumBends,MOVE_RIGHT);
+		}
+		//check bottom
+		if(!move && y + 1 < this.gridBorderSize + this.size + 1 && this.fullBoard[x][y + 1].id === EMPTY && direction !== MOVE_TOP){
+			console.log("Moving Bottom")
+			if(direction !== MOVE_BOTTOM) {
+				tempNumBends = numBends + 1;
+			} else {
+				tempNumBends = numBends;
+			}
+			move = this.validMove(x,y + 1,objX,objY,tempNumBends,MOVE_BOTTOM);
+		}
+		//check left
+		if(!move && x - 1 > this.gridBorderSize - 1 && this.fullBoard[x - 1][y].id === EMPTY && direction !== MOVE_RIGHT){
+			console.log("Moving Left")
+			if(direction !== MOVE_LEFT) {
+				tempNumBends = numBends + 1;
+			} else {
+				tempNumBends = numBends;
+			}
+			move = this.validMove(x - 1,y,objX,objY,tempNumBends,MOVE_LEFT);
+		}
+
+		return move;
+	}
 }
 
 Board.prototype.generateInteriorBoard = function () {
@@ -56,16 +169,16 @@ Board.prototype.generateInteriorBoard = function () {
 Board.prototype.generateWholeBoard = function (){
 	this.fullBoard = [];
 	var coloredYCount = 0;
-	var gridBorderSize = ((GRID_SIZE - this.size) / 2);
+	
 	for(var i = 0; i< GRID_SIZE; i++) {
 		var currentRow = new Array();
 		var coloredXCount = 0;
 		for(var j = 0; j< GRID_SIZE; j++) {
 
-			if(j >= gridBorderSize && coloredXCount < this.size && coloredYCount < this.size && i >= gridBorderSize) {
+			if(j >= this.gridBorderSize && coloredXCount < this.size && coloredYCount < this.size && i >= this.gridBorderSize) {
 				
-				var translatedX = i - this.size + (GRID_SIZE - 3 * gridBorderSize);
-				var translatedY = j - this.size + (GRID_SIZE - 3 * gridBorderSize);
+				var translatedX = i - this.size + (GRID_SIZE - 3 * this.gridBorderSize);
+				var translatedY = j - this.size + (GRID_SIZE - 3 * this.gridBorderSize);
 
 				currentRow.push(new Block(this.interiorBoard[translatedX][translatedY].id,this.interiorBoard[translatedX][translatedY].color));
 				coloredXCount++;
@@ -74,7 +187,7 @@ Board.prototype.generateWholeBoard = function (){
 			}	
 		}
 
- 		if(i >= gridBorderSize  && coloredYCount < this.size) {
+ 		if(i >= this.gridBorderSize  && coloredYCount < this.size) {
  			coloredYCount++;
  		}
 
@@ -104,18 +217,51 @@ Board.prototype.compareBoxes = function (x,y, sx, sy) {
 	if(firstBoxX == secondBoxX && firstBoxY == secondBoxY) {
 		return false;
 	}
-
+	//Check to see if they are the same color before checking to see if they are in "range" of each other
 	if (this.fullBoard[firstBoxX][firstBoxY].id === this.fullBoard[secondBoxX][secondBoxY].id){
 		console.log("Both boxes are the same color");
 
+		//check to see if they are next to each other;
+		if (Math.abs(firstBoxX - secondBoxX) <= 1 && Math.abs(firstBoxY - secondBoxY) == 0) //Horizontal Check
+		{
+			this.fullBoard[firstBoxX][firstBoxY] = new Block(EMPTY, WHITE);
+			this.fullBoard[secondBoxX][secondBoxY] = new Block(EMPTY, WHITE);
+			return true;
+		} else if( Math.abs(firstBoxX - secondBoxX) == 0 && Math.abs(firstBoxY - secondBoxY) <= 1) { //Vertical Check
+			this.fullBoard[firstBoxX][firstBoxY] = new Block(EMPTY, WHITE);
+			this.fullBoard[secondBoxX][secondBoxY] = new Block(EMPTY, WHITE);
+			return true;
+		} else { //Check to see if we can draw a line between the two boxes with a maximum number of bends of 3
 
-		this.fullBoard[firstBoxX][firstBoxY] = new Block(EMPTY, WHITE);
-		this.fullBoard[secondBoxX][secondBoxY] = new Block(EMPTY, WHITE);
-		return true;
+			var move = false;
+			//check top
+			if(firstBoxY - 1 >= 0 && this.fullBoard[firstBoxX][firstBoxY-1].id == EMPTY){
+				console.log("Moving top");
+				move = this.validMove(firstBoxX,firstBoxY - 1,secondBoxX,secondBoxY,1,MOVE_TOP);
+			}
+			//check right			
+			if(!move && firstBoxX + 1 < GRID_SIZE && this.fullBoard[firstBoxX + 1][firstBoxY].id == EMPTY){
+				console.log("Moving Right");
+				move = move = this.validMove(firstBoxX + 1,firstBoxY,secondBoxX,secondBoxY,1,MOVE_RIGHT);
+			}
+			//check bottom
+			if(!move && firstBoxY + 1 < GRID_SIZE && this.fullBoard[firstBoxX][firstBoxY + 1].id == EMPTY){
+				console.log("Moving Bottom");
+				move = this.validMove(firstBoxX,firstBoxY + 1,secondBoxX,secondBoxY,1,MOVE_BOTTOM);
+			}
+			//check left
+			if(!move && firstBoxX - 1 >= 0 && this.fullBoard[firstBoxX - 1][firstBoxY].id == EMPTY){
+				console.log("Moving left");
+				move = this.validMove(firstBoxX - 1,firstBoxY,secondBoxX,secondBoxY,1,MOVE_LEFT);
+			}
 
+			if(move === true){
+				this.fullBoard[firstBoxX][firstBoxY] = new Block(EMPTY, WHITE);
+				this.fullBoard[secondBoxX][secondBoxY] = new Block(EMPTY, WHITE);
+			}
+
+			return move;
+		}
 	}
-
 	return false;
-
-
 }

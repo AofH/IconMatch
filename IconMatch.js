@@ -1,6 +1,4 @@
 
-// 7, 14, 12, 2, 0, 8, 5, 10, 4, 11, 15, 6, 13, 9, 1, 3
-
 
 var SQUARE_LENGTH = 50;
 var GRID_SIZE = 10;
@@ -68,7 +66,7 @@ function init(){
 
 function initBoard(){
 	
-	_board = new Board(EASY);
+	_board = new Board(MEDIUM);
 	_board.generateInteriorBoard();
 	_board.generateWholeBoard();
 
@@ -121,10 +119,7 @@ function getPosition(event) {
 	    	} else {
 	    		_selectedBox.selected = false;
 	    		//compare currentSelectoin
-
-	    		var validMove = _board.compareBoxes(x,y, _selectedBox.x, _selectedBox.y);
-
-
+	    		var validMove = _board.compareBoxes(_selectedBox.x,_selectedBox.y, x,y);
 	    	}
 	    }
 	    draw();
@@ -132,10 +127,6 @@ function getPosition(event) {
 }
 
 function getTopLeftCorner(x, y){
-	//Add the external Padding offset
-	//x -= GRID_PADDING * 2 - 8; //The 8 is the offset that makes the box detection work correctly
-	//y -= GRID_PADDING * 2 - 8;
-
 	var topLeft = {
 		x:  Math.floor(x/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING,
 		y: Math.floor(y/SQUARE_LENGTH) * SQUARE_LENGTH + GRID_PADDING
@@ -173,7 +164,7 @@ function drawGrid(){
 	//Draw the horizontal lines
 	for(var x = 0; x <= GRID_HEIGHT_BOUND; x += SQUARE_LENGTH) {
 		_ctx.moveTo( GRID_PADDING, 1 + x + GRID_PADDING);
-		_ctx.lineTo( GRID_WIDTH_BOUND + GRID_PADDING ,1 + x + GRID_PADDING);
+		_ctx.lineTo( GRID_WIDTH_BOUND + GRID_PADDING+2 ,1 + x + GRID_PADDING);
 	}
 
 	_ctx.strokeStyle = "black";
