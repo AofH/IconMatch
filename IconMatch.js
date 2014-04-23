@@ -109,10 +109,8 @@ function getPosition(event) {
     //Apply offsets to the x y variables
     x -= _canvas.offsetLeft;
     y -= _canvas.offsetTop;
-    console.log('X: '+x + " y: "+y);
-	
-
-    if(_stage === MENU_STAGE) {
+    
+	if(_stage === MENU_STAGE) {
     	parseMenuClick(x,y);
     } else if(_stage === GAME_STAGE) {
     	parseGameClick(x,y);
@@ -188,6 +186,7 @@ function getTopLeftCorner(x, y){
 
 function drawSelectedBoxOutline(x, y){
 	_ctx.strokeStyle = BOX_SELECTION_COLOR;
+	_ctx.lineWidth = 4;
 	_ctx.strokeRect(x+1,y+1,SQUARE_LENGTH,SQUARE_LENGTH);
 }
 
@@ -219,6 +218,7 @@ function drawGrid(){
 	}
 
 	_ctx.strokeStyle = BLACK;
+	_ctx.lineWidth = 1;
 	_ctx.stroke();
 }
 
@@ -270,7 +270,6 @@ function drawMenuButton(text,x,y,textX,textY){
 	_ctx.fillRect(x,y,MENU_BUTTON_LENGTH,MENU_BUTTON_HEIGHT);
 	_ctx.fillStyle = BLACK;
 	_ctx.font = "bold 16px Arial";
-	console.log(textX);
 	_ctx.fillText(text, textX, textY);
 
 }
