@@ -4,6 +4,7 @@ var _board;
 var _selectedBox;
 var _gameOver;
 var _timer;
+var _stage;
 
 var _requestAnimationFrame =  
         window.requestAnimationFrame ||
@@ -26,23 +27,31 @@ function init(){
 
 	_canvas.addEventListener("mousedown", getPosition, false);
 
+	_stage = MENU_STAGE;
+	_ctx = _canvas.getContext('2d');
+
+	draw();
+}
+
+function initGame(difficulty){
+
+	_timer = new Timer(TIMER_LOCATION_X, TIMER_LOCATION_Y, TIMER_LENGTH, TIMER_HEIGHT, 30);
+
 	_selectedBox = {
 		selected:false,
 		x:GRID_PADDING,
 		y:GRID_PADDING 
     }
 
-    _timer = new Timer(TIMER_LOCATION_X, TIMER_LOCATION_Y, TIMER_LENGTH, TIMER_HEIGHT, 30);
-	initBoard();
-
-
-	_ctx = _canvas.getContext('2d');
-	draw();
+    _gameOver = false;
+    initBoard(difficulty);
+    _stage = GAME_STAGE;
+    draw();
 }
 
-function initBoard(){
+function initBoard(difficulty){
 	
-	_board = new Board(EASY);
+	_board = new Board(difficulty);
 	_board.generateInteriorBoard();
 	_board.generateWholeBoard();
 
@@ -51,34 +60,38 @@ function initBoard(){
 
 function draw(now) {
 	
-	_timer.update(now);
-
 	_ctx.clearRect(0,0,_canvas.width,_canvas.height);
-	drawBlocks();
-	drawGrid();
-	
-	if(_selectedBox.selected === true){
+	if (_stage === MENU_STAGE) {
+		drawMenu();
+	} else if (_stage === GAME_STAGE) {
+		_timer.update(now);
 
-		var selectedBoxCoords = getTopLeftCorner(_selectedBox.x, _selectedBox.y);
-		drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
-	}
-	
-	if(_gameOver || _timer.timeRemaining <= 0)
-	{
-		_gameOver = true;
-		if(_board.empty()){
-			
-			drawText("You Win!");
-			drawRetryButton();
-		} else {
-			drawText("You Lose!");
-			drawRetryButton();
+		
+		drawBlocks();
+		drawGrid();
+		
+		if(_selectedBox.selected === true){
+
+			var selectedBoxCoords = getTopLeftCorner(_selectedBox.x, _selectedBox.y);
+			drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
 		}
-	} else {
-		drawTimer();
-		_requestAnimationFrame(draw);
+		
+		if(_gameOver || _timer.timeRemaining <= 0)
+		{
+			_gameOver = true;
+			if(_board.empty()){
+				
+				drawText("You Win!");
+				drawRetryButton();
+			} else {
+				drawText("You Lose!");
+				drawRetryButton();
+			}
+		} else {
+			drawTimer();
+			_requestAnimationFrame(draw);
+		}	
 	}
-	
 }
 
 function getPosition(event) {
@@ -98,11 +111,43 @@ function getPosition(event) {
     y -= _canvas.offsetTop;
     console.log('X: '+x + " y: "+y);
 	
+
+    if(_stage === MENU_STAGE) {
+    	parseMenuClick(x,y);
+    } else if(_stage === GAME_STAGE) {
+    	parseGameClick(x,y);
+    }
+}
+
+function parseMenuClick(x,y){
+	if(x >= EASY_BUTTON_X && x < EASY_BUTTON_X + MENU_BUTTON_LENGTH){
+		if( y >= EASY_BUTTON_Y && y < EASY_BUTTON_Y + MENU_BUTTON_HEIGHT){
+			initGame(EASY);
+		}
+	}
+
+	if(x >= MEDIUM_BUTTON_X && x < MEDIUM_BUTTON_X + MENU_BUTTON_LENGTH){
+		if( y >= MEDIUM_BUTTON_Y && y < MEDIUM_BUTTON_Y + MENU_BUTTON_HEIGHT){
+			initGame(MEDIUM);
+		}
+	}
+
+	if(x >= HARD_BUTTON_X && x < HARD_BUTTON_X + MENU_BUTTON_LENGTH){
+		if( y >= HARD_BUTTON_Y && y < HARD_BUTTON_Y + MENU_BUTTON_HEIGHT){
+			initGame(HARD);
+		}
+	}
+
+
+}
+
+function parseGameClick(x,y){
 	if(_gameOver) {
 		if(x>= RETRY_BUTTON_X && x < RETRY_BUTTON_X + RETRY_BUTTON_WIDTH) {
 			if(y >= RETRY_BUTTON_Y && y < RETRY_BUTTON_Y +RETRY_BUTTON_HEIGHT)
 			{
-				console.log("RETRY");
+				_stage = MENU_STAGE;
+				draw();
 			}
 		}	
 
@@ -195,4 +240,37 @@ function drawRetryButton(){
 	_ctx.fillStyle = BLACK;
 	_ctx.font = "bold 16px Arial";
 	_ctx.fillText("Play Again", RETRY_BUTTON_X+10,RETRY_BUTTON_Y+25);
+}
+
+function drawMenu(){
+	drawTitle();
+	drawInstructions();
+	drawMenuButton("Easy",EASY_BUTTON_X, EASY_BUTTON_Y, EASY_BUTTON_TEXT_X, EASY_BUTTON_TEXT_Y);
+	drawMenuButton("Medium",MEDIUM_BUTTON_X, MEDIUM_BUTTON_Y, MEDIUM_BUTTON_TEXT_X, MEDIUM_BUTTON_TEXT_Y);
+	drawMenuButton("Hard",HARD_BUTTON_X, HARD_BUTTON_Y, HARD_BUTTON_TEXT_X, HARD_BUTTON_TEXT_Y);
+}
+
+function drawTitle(){
+	_ctx.fillStyle = BLACK;
+	_ctx.font = "bold 25px Arial";
+	_ctx.fillText("Color Match", CANVAS_WIDTH/2 - 85, GRID_PADDING*4);
+}
+
+function drawInstructions(){
+	_ctx.fillStyle = BLACK;
+	_ctx.font = "bold 16px Arial";
+	var instructions = "Match boxes by their colors";
+	_ctx.fillText(instructions, 140, 100);
+	instructions = "and if you can draw a line with 3 or less bends in between them";
+	_ctx.fillText(instructions, 15, 125);
+}
+
+function drawMenuButton(text,x,y,textX,textY){
+	_ctx.fillStyle = GREEN
+	_ctx.fillRect(x,y,MENU_BUTTON_LENGTH,MENU_BUTTON_HEIGHT);
+	_ctx.fillStyle = BLACK;
+	_ctx.font = "bold 16px Arial";
+	console.log(textX);
+	_ctx.fillText(text, textX, textY);
+
 }
