@@ -1,51 +1,27 @@
-
-
-var SQUARE_LENGTH = 50;
-var GRID_SIZE = 10;
-var GRID_WIDTH_BOUND = SQUARE_LENGTH * GRID_SIZE; 
-var GRID_HEIGHT_BOUND = SQUARE_LENGTH * GRID_SIZE; 
-var GRID_PADDING = 10;
-
-var CANVAS_WIDTH = GRID_WIDTH_BOUND + (GRID_PADDING * 2) + 1;
-var CANVAS_HEIGHT = GRID_HEIGHT_BOUND + (GRID_PADDING * 2) + 1;
-
-var BOARD_SIZE = 8;
-
-var EMPTY = 0;
-
-var EASY = 4;
-var MEDIUM = 6;
-var HARD = 8;
-
-
-var WHITE = "rgb(255,255,255)";
-var RED = "rgb(255, 0, 0)";
-var ORANGE = "rgb(255, 128, 0)";
-var YELLOW = "rgb(255, 255, 0)";
-var GREEN = "rgb(0, 255, 0)";
-var CYAN = "rgb(0, 255, 255)";
-var LIGHTBLUE = "rgb(0, 128,255)";
-var BLUE = "rgb(0, 0, 255)";
-var PURPLE = "rgb(127, 0 , 255)";
-var PINK = "rgb(255, 0 , 127)";
-var BURNTUMBER = "rgb(138, 52, 36)";
-
-var BOX_SELECTION_COLOR = "#FF0000";
-
-var COLOR_ARRAY = [ORANGE,YELLOW, GREEN, CYAN, LIGHTBLUE, BLUE, PURPLE, PINK, BURNTUMBER];
-
-
 var _canvas;
 var _ctx;
 var _board;
 var _selectedBox;
+var _gameOver;
+var _timer;
+
+var _requestAnimationFrame =  
+        window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        function(callback) {
+          return setTimeout(callback, 1);
+        };
+
 
 function init(){
 
 
 	_canvas = document.getElementById('canvas');
-	_canvas.height = CANVAS_WIDTH;
-	_canvas.width = CANVAS_HEIGHT;
+	_canvas.height = CANVAS_HEIGHT;
+	_canvas.width = CANVAS_WIDTH; ;
 	_canvas.style.border = "1px solid black";
 
 	_canvas.addEventListener("mousedown", getPosition, false);
@@ -56,7 +32,7 @@ function init(){
 		y:GRID_PADDING 
     }
 
-
+    _timer = new Timer(TIMER_LOCATION_X, TIMER_LOCATION_Y, TIMER_LENGTH, TIMER_HEIGHT, 30);
 	initBoard();
 
 
@@ -66,15 +42,18 @@ function init(){
 
 function initBoard(){
 	
-	_board = new Board(MEDIUM);
+	_board = new Board(EASY);
 	_board.generateInteriorBoard();
 	_board.generateWholeBoard();
 
 }
 
 
-function draw() {
+function draw(now) {
 	
+	_timer.update(now);
+
+	_ctx.clearRect(0,0,_canvas.width,_canvas.height);
 	drawBlocks();
 	drawGrid();
 	
@@ -84,7 +63,22 @@ function draw() {
 		drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
 	}
 	
-
+	if(_gameOver || _timer.timeRemaining <= 0)
+	{
+		_gameOver = true;
+		if(_board.empty()){
+			
+			drawText("You Win!");
+			drawRetryButton();
+		} else {
+			drawText("You Lose!");
+			drawRetryButton();
+		}
+	} else {
+		drawTimer();
+		_requestAnimationFrame(draw);
+	}
+	
 }
 
 function getPosition(event) {
@@ -102,27 +96,39 @@ function getPosition(event) {
     //Apply offsets to the x y variables
     x -= _canvas.offsetLeft;
     y -= _canvas.offsetTop;
-	//Custom offset so that the box detection works correctly
-	x -= GRID_PADDING * 2 - 8; //Wierd magic 8 which makes detection work 100%
-	y -= GRID_PADDING * 2 - 8;
+    console.log('X: '+x + " y: "+y);
+	
+	if(_gameOver) {
+		if(x>= RETRY_BUTTON_X && x < RETRY_BUTTON_X + RETRY_BUTTON_WIDTH) {
+			if(y >= RETRY_BUTTON_Y && y < RETRY_BUTTON_Y +RETRY_BUTTON_HEIGHT)
+			{
+				console.log("RETRY");
+			}
+		}	
 
+	
+	} else {
+		//Apply custom offset for box detection
+		x -= GRID_PADDING * 2 - 8; //Wierd magic 8 which makes detection work 100%
+		y -= GRID_PADDING * 2 - 8;
+		
+		if ((x < CANVAS_WIDTH - GRID_PADDING * 2 && x > GRID_PADDING*2) && (y < CANVAS_HEIGHT - GRID_PADDING * 2 && y > GRID_PADDING*2)) {
+		    if(_board.isValidBox(x,y)){
+		    	if(_selectedBox.selected === false) {
+			    	_selectedBox.selected = true;
+			    	_selectedBox.x = x;
+			    	_selectedBox.y = y;
 
- 	// If the mouse pointer is inside the border of the grid, draw.
-    if ((x < CANVAS_WIDTH - GRID_PADDING * 2 && x > GRID_PADDING*2) && (y < CANVAS_HEIGHT - GRID_PADDING * 2 && y > GRID_PADDING*2)) {
-	    if(_board.isValidBox(x,y)){
-	    	if(_selectedBox.selected === false) {
-		    	_selectedBox.selected = true;
-		    	_selectedBox.x = x;
-		    	_selectedBox.y = y;
+			    	
+		    	} else {
+		    		_selectedBox.selected = false;
+		    		//compare currentSelectoin
+		    		var validMove = _board.compareBoxes(_selectedBox.x,_selectedBox.y, x,y);
+		    		_gameOver = _board.empty();
 
-		    	
-	    	} else {
-	    		_selectedBox.selected = false;
-	    		//compare currentSelectoin
-	    		var validMove = _board.compareBoxes(_selectedBox.x,_selectedBox.y, x,y);
-	    	}
+		    	}
+		    }
 	    }
-	    draw();
     }
 }
 
@@ -167,6 +173,26 @@ function drawGrid(){
 		_ctx.lineTo( GRID_WIDTH_BOUND + GRID_PADDING+2 ,1 + x + GRID_PADDING);
 	}
 
-	_ctx.strokeStyle = "black";
+	_ctx.strokeStyle = BLACK;
 	_ctx.stroke();
+}
+
+function drawTimer() {
+	_ctx.fillStyle = _timer.timerColor;
+	_ctx.fillRect(_timer.x,_timer.y, _timer.width, _timer.height);
+}
+
+function drawText(text) {
+	_ctx.fillStyle = BLACK;
+	_ctx.font = "bold 16px Arial";
+	_ctx.fillText(text, GAME_OVER_TEXT_X, GAME_OVER_TEXT_Y);
+}
+
+function drawRetryButton(){
+	_ctx.fillStyle = GREEN;
+	_ctx.fillRect(RETRY_BUTTON_X,RETRY_BUTTON_Y,RETRY_BUTTON_WIDTH,RETRY_BUTTON_HEIGHT);
+
+	_ctx.fillStyle = BLACK;
+	_ctx.font = "bold 16px Arial";
+	_ctx.fillText("Play Again", RETRY_BUTTON_X+10,RETRY_BUTTON_Y+25);
 }
