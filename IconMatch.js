@@ -18,9 +18,7 @@ var _requestAnimationFrame =
 
 
 function init(){
-
-
-	_canvas = document.getElementById('canvas');
+    _canvas = document.getElementById('canvas');
 	_canvas.height = CANVAS_HEIGHT;
 	_canvas.width = CANVAS_WIDTH; ;
 	_canvas.style.border = "1px solid black";
