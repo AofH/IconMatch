@@ -64,11 +64,13 @@ function draw(now) {
 	if (_stage === MENU_STAGE) {
 		drawMenu();
 	} else if (_stage === GAME_STAGE) {
+		
 		_timer.update(now);
 
 		
 		drawBlocks();
 		drawGrid();
+		
 		
 		if(_selectedBox.selected === true){
 
@@ -90,7 +92,8 @@ function draw(now) {
 		} else {
 			drawTimer();
 			_requestAnimationFrame(draw);
-		}	
+		}
+			
 	}
 }
 
@@ -154,7 +157,6 @@ function parseGameClick(x,y){
 		//Apply custom offset for box detection
 		x -= GRID_PADDING * 2 - 8; //Wierd magic 8 which makes detection work 100%
 		y -= GRID_PADDING * 2 - 8;
-		
 		if ((x < CANVAS_WIDTH - GRID_PADDING * 2 && x > GRID_PADDING*2) && (y < CANVAS_HEIGHT - GRID_PADDING * 2 && y > GRID_PADDING*2)) {
 		    if(_board.isValidBox(x,y)){
 		    	if(_selectedBox.selected === false) {
@@ -172,6 +174,7 @@ function parseGameClick(x,y){
 		    	}
 		    }
 	    }
+
     }
 }
 
@@ -206,11 +209,14 @@ function drawBlocks(){
 }
 
 function drawGrid(){
+	//beginPath speeds up the draw significantly;
+	_ctx.beginPath();
 	//Draw the vertical lines
 	for(var x = 0; x <= GRID_WIDTH_BOUND; x += SQUARE_LENGTH) {
 		_ctx.moveTo(1 + x + GRID_PADDING , GRID_PADDING);
 		_ctx.lineTo(1 + x + GRID_PADDING , GRID_HEIGHT_BOUND + GRID_PADDING);
 	}
+	
 	//Draw the horizontal lines
 	for(var x = 0; x <= GRID_HEIGHT_BOUND; x += SQUARE_LENGTH) {
 		_ctx.moveTo( GRID_PADDING, 1 + x + GRID_PADDING);
