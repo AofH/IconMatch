@@ -87,6 +87,66 @@ function Board(size){
 
 		return move;
 	}
+
+	this.findMatchedBlocks = function (x, y, boxColor) {
+		var matchedBlocks = new Array();
+		for (var i = this.gridBorderSize; i < GRID_SIZE-this.gridBorderSize; i++) {
+			for (var j = this.gridBorderSize; j < GRID_SIZE - this.gridBorderSize; j++)
+			{
+				if (this.fullBoard[i][j].id === boxColor) {
+					matchedBlocks.push( {x:i, y:j});
+				}
+			}
+		}
+		return matchedBlocks;
+	}
+
+	this.move = function (firstBoxX, firstBoxY, secondBoxX, secondBoxY){
+		var move = false;
+		//check top
+		if(firstBoxY - 1 >= 0 && this.fullBoard[firstBoxX][firstBoxY-1].id == EMPTY){
+			move = this.validMove(firstBoxX,firstBoxY - 1,secondBoxX,secondBoxY,1,MOVE_TOP);
+		}
+		//check right			
+		if(!move && firstBoxX + 1 < GRID_SIZE && this.fullBoard[firstBoxX + 1][firstBoxY].id == EMPTY){
+			move = move = this.validMove(firstBoxX + 1,firstBoxY,secondBoxX,secondBoxY,1,MOVE_RIGHT);
+		}
+		//check bottom
+		if(!move && firstBoxY + 1 < GRID_SIZE && this.fullBoard[firstBoxX][firstBoxY + 1].id == EMPTY){
+			move = this.validMove(firstBoxX,firstBoxY + 1,secondBoxX,secondBoxY,1,MOVE_BOTTOM);
+		}
+		//check left
+		if(!move && firstBoxX - 1 >= 0 && this.fullBoard[firstBoxX - 1][firstBoxY].id == EMPTY){
+			move = this.validMove(firstBoxX - 1,firstBoxY,secondBoxX,secondBoxY,1,MOVE_LEFT);
+		}
+		
+		return move;
+	}
+
+
+	this.shuffle = function(myArray) {
+		for (i = myArray.length-1; i > 1  ; i--)
+	    {
+	        var r = Math.floor(Math.random()*i);
+	        var t = myArray[i];
+	        myArray[i] = myArray[r];
+	        myArray[r] = t;
+	    }
+
+	    return myArray;
+	}
+
+	this.flipBoxes = function(x,y, sx, sy) {
+		var storedId = this.fullBoard[x][y].id;
+		var storedColor = this.fullBoard[x][y].color;
+
+		this.fullBoard[x][y].id = this.fullBoard[sx][sy].id;
+		this.fullBoard[x][y].color = this.fullBoard[sx][sy].color;
+
+		this.fullBoard[sx][sy].id = storedId;
+		this.fullBoard[sx][sy].color = storedColor;
+	}
+
 }
 
 Board.prototype.generateInteriorBoard = function () {
@@ -106,18 +166,7 @@ Board.prototype.generateInteriorBoard = function () {
 	for (var i = 0; i < this.size * this.size; i++){
 		randomNumberArray.push(i);
 	}
-	var shuffle = function (myArray) {
-		for (i = myArray.length-1; i > 1  ; i--)
-	    {
-	        var r = Math.floor(Math.random()*i);
-	        var t = myArray[i];
-	        myArray[i] = myArray[r];
-	        myArray[r] = t;
-	    }
-
-	    return myArray
-	}
-	randomNumberArray = shuffle(randomNumberArray);
+	randomNumberArray = this.shuffle(randomNumberArray);
 	
 	//Place two boxes colored the same in two different spots in the interior board, given from the random number array
 	for(var i = 0; i < randomNumberArray.length; i +=2 )
@@ -201,30 +250,11 @@ Board.prototype.compareBoxes = function (x,y, sx, sy) {
 			return true;
 		} else { //Check to see if we can draw a line between the two boxes with a maximum number of bends of 3
 
-			var move = false;
-			//check top
-			if(firstBoxY - 1 >= 0 && this.fullBoard[firstBoxX][firstBoxY-1].id == EMPTY){
-				move = this.validMove(firstBoxX,firstBoxY - 1,secondBoxX,secondBoxY,1,MOVE_TOP);
-			}
-			//check right			
-			if(!move && firstBoxX + 1 < GRID_SIZE && this.fullBoard[firstBoxX + 1][firstBoxY].id == EMPTY){
-				move = move = this.validMove(firstBoxX + 1,firstBoxY,secondBoxX,secondBoxY,1,MOVE_RIGHT);
-			}
-			//check bottom
-			if(!move && firstBoxY + 1 < GRID_SIZE && this.fullBoard[firstBoxX][firstBoxY + 1].id == EMPTY){
-				move = this.validMove(firstBoxX,firstBoxY + 1,secondBoxX,secondBoxY,1,MOVE_BOTTOM);
-			}
-			//check left
-			if(!move && firstBoxX - 1 >= 0 && this.fullBoard[firstBoxX - 1][firstBoxY].id == EMPTY){
-				move = this.validMove(firstBoxX - 1,firstBoxY,secondBoxX,secondBoxY,1,MOVE_LEFT);
-			}
-			//If their is a valid line between the two boxes, replace them with empty boxes
-			if(move === true){
+			if (this.move(firstBoxX,firstBoxY,secondBoxX,secondBoxY) == true) {
 				this.fullBoard[firstBoxX][firstBoxY] = new Block(EMPTY, WHITE);
 				this.fullBoard[secondBoxX][secondBoxY] = new Block(EMPTY, WHITE);
-			}
-
-			return move;
+				return true;
+			}	
 		}
 	}
 	return false;
@@ -240,4 +270,54 @@ Board.prototype.empty = function() {
 		}	
 	}
 	return true;
+}
+
+Board.prototype.validMoveExists = function () {
+
+	var moveExists = false;
+	for (var i = this.gridBorderSize; i < GRID_SIZE-this.gridBorderSize; i++) {
+		for (var j = this.gridBorderSize; j < GRID_SIZE - this.gridBorderSize; j++)
+		{
+			if(this.fullBoard[i][j].id != EMPTY) {
+				var matchingBlocks = this.findMatchedBlocks(i, j, this.fullBoard[i][j].id);
+				for(var k = 0; k < matchingBlocks.length; k++){
+					if(i === matchingBlocks[k].x && j === matchingBlocks[k].y) {
+						//do nothing if the matched block is the same as the one being compared to
+					} else {
+						moveExists = this.move(i,j,matchingBlocks[k].x,matchingBlocks[k].y);
+					}
+
+					if(moveExists)
+						return true;
+
+				}
+			}	
+		}
+	}
+	return moveExists;
+}
+
+Board.prototype.resetCurrentInterior = function() {
+
+	var currentColoredBoxes = new Array();
+	for (var i = this.gridBorderSize; i < GRID_SIZE-this.gridBorderSize; i++) {
+		for (var j = this.gridBorderSize; j < GRID_SIZE - this.gridBorderSize; j++)
+		{
+			if(this.fullBoard[i][j].id != EMPTY) {
+				currentColoredBoxes.push({x:i, y:j});
+			}
+		}
+	}
+
+	currentColoredBoxes = this.shuffle(currentColoredBoxes);
+
+	var count = 0;
+	for (var i = this.gridBorderSize; i < GRID_SIZE-this.gridBorderSize; i++) {
+		for (var j = this.gridBorderSize; j < GRID_SIZE - this.gridBorderSize; j++)
+		{
+			if(this.fullBoard[i][j].id != EMPTY) {
+				this.flipBoxes(i,j,currentColoredBoxes[count].x,currentColoredBoxes[count].y);
+			}
+		}
+	}
 }

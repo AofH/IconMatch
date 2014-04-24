@@ -162,7 +162,7 @@ function parseGameClick(x,y){
 		//Check to see if the mouse click is within the grid as we need to add some offset for better box detection
 		} else if (x >= GRID_PADDING && x < GRID_WIDTH_BOUND + GRID_PADDING &&  
 			       y >= GRID_PADDING && y < GRID_HEIGHT_BOUND + GRID_PADDING){
-			console.log("")
+			
 			//Apply custom offset for box detection
 			x -= GRID_PADDING * 2 - 8; //Wierd magic 8 which makes detection work 100%
 			y -= GRID_PADDING * 2 - 8;
@@ -178,7 +178,24 @@ function parseGameClick(x,y){
 			    		_selectedBox.selected = false;
 			    		//compare currentSelectoin
 			    		var validMove = _board.compareBoxes(_selectedBox.x,_selectedBox.y, x,y);
+
+
+			    		//check to see if the game is over by checking to ssee if the board is empty;
 			    		_gameOver = _board.empty();
+
+			    		if(!_gameOver) {
+				    		var validMoveExists = _board.validMoveExists();
+				    		//console.log(validMoveExists);
+				    		//if no valid move exists, move the pieces around so that it creates a valid move
+				    		if(!validMoveExists){
+				    			while(!validMoveExists) {
+				    				_board.resetCurrentInterior();
+				    				validMoveExists = _board.validMoveExists();
+				    			}
+				    		}
+						}
+
+			    		
 
 			    	}
 			    }
