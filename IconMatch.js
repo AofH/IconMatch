@@ -5,6 +5,8 @@ var _selectedBox;
 var _gameOver;
 var _timer;
 var _stage;
+var _animationId;
+var _animationTime;
 
 var _requestAnimationFrame =  
         window.requestAnimationFrame ||
@@ -28,11 +30,12 @@ function init(){
 	_stage = MENU_STAGE;
 	_ctx = _canvas.getContext('2d');
 
+	_animationTime = 0;
+
 	draw();
 }
 
 function initGame(difficulty){
-
 	_timer = new Timer(TIMER_LOCATION_X, TIMER_LOCATION_Y, TIMER_LENGTH, TIMER_HEIGHT, 30);
 
 	_selectedBox = {
@@ -62,7 +65,7 @@ function draw(now) {
 	if (_stage === MENU_STAGE) {
 		drawMenu();
 	} else if (_stage === GAME_STAGE) {
-		
+		_animationTime = now;
 		_timer.update(now);
 
 		
@@ -79,6 +82,7 @@ function draw(now) {
 		if(_gameOver || _timer.timeRemaining <= 0)
 		{
 			_gameOver = true;
+			
 			if(_board.empty()){
 				
 				drawText("You Win!");
@@ -265,8 +269,10 @@ function drawInstructions(){
 	_ctx.font = "bold 16px Arial";
 	var instructions = "Match boxes by their colors";
 	_ctx.fillText(instructions, 140, 100);
-	instructions = "and if you can draw a line with 3 or less bends in between them";
+	instructions = "and if you can draw a line with 3 or less bends in between them.";
 	_ctx.fillText(instructions, 15, 125);
+	instructions = "You have 30 seconds to match";
+	_ctx.fillText(instructions, 130, 150);
 }
 
 function drawMenuButton(text,x,y,textX,textY){
