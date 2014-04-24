@@ -6,6 +6,7 @@ function Board(size){
 	this.fullBoard = new Array();
 	this.hintList = new Array();
 
+	//Checks for Valid moves in the board
 	this.validMove = function (x, y, objX, objY, numBends, direction){
 		
 		var tempNumBends = numBends;
@@ -102,6 +103,7 @@ function Board(size){
 		return matchedBlocks;
 	}
 
+	//starter function for checking for valid moves given the first box coordinates and the end box coordinates
 	this.move = function (firstBoxX, firstBoxY, secondBoxX, secondBoxY){
 		var move = false;
 		//check top
@@ -124,7 +126,7 @@ function Board(size){
 		return move;
 	}
 
-
+	//Shuffle function gets used for various functions
 	this.shuffle = function(myArray) {
 		for (i = myArray.length-1; i > 1  ; i--)
 	    {

@@ -72,15 +72,6 @@ function initBoard(difficulty){
 }
 
 
-function draw(now) {
-	
-	_ctx.clearRect(0,0,_canvas.width,_canvas.height);
-	if (_stage === MENU_STAGE) {
-		drawMenu();
-	} else if (_stage === GAME_STAGE) {
-		drawGame(now);	
-	}
-}
 
 function activeSecondsButton(){
 	var timePassed = _timer.timePassed();
@@ -181,7 +172,6 @@ function parseGameClick(x,y){
 			    		if(!_gameOver) {
 			    			
 				    		var validMoveExists = _board.validMoveExists();
-				    		//console.log(validMoveExists);
 				    		//if no valid move exists, move the pieces around so that it creates a valid move
 				    		if(!validMoveExists){
 				    			while(!validMoveExists) {
@@ -209,6 +199,17 @@ function getTopLeftCorner(x, y){
 /*---------------------------------------------------*/
 /* Draw Functions 									 */
 /*---------------------------------------------------*/
+
+function draw(now) {
+	
+	_ctx.clearRect(0,0,_canvas.width,_canvas.height);
+	if (_stage === MENU_STAGE) {
+		drawMenu();
+	} else if (_stage === GAME_STAGE) {
+		drawGame(now);	
+	}
+}
+
 
 function drawGame(now) {
 	_animationTime = now;
