@@ -64,7 +64,7 @@ function Board(size){
 				tempNumBends = numBends;
 			}
 
-			move = move = this.validMove(x + 1,y,objX,objY,tempNumBends,MOVE_RIGHT);
+			move = this.validMove(x + 1,y,objX,objY,tempNumBends,MOVE_RIGHT);
 		}
 		//check bottom
 		if(!move && y + 1 < this.gridBorderSize + this.size + 1 && this.fullBoard[x][y + 1].id === EMPTY && direction !== MOVE_TOP){

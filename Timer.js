@@ -5,7 +5,6 @@ function Timer(x,y,width,height,timeLength){
 	this.height = height;
 	this.storedWidth = width;
 	this.timeLength = timeLength;
-	this.timerMilliseconds = timeLength * 1000;
 	this.timerColor = YELLOW;
 	this.timeRemaining = this.timeLength;
 
@@ -25,7 +24,7 @@ Timer.prototype.update = function(now){
 		pixelsChangePerFrame = 0;
 	}
 	this.width -= pixelsChangePerFrame;
-
+	//If the width ever goes below 0, it continues drawing so this prevents it from doing so
 	if(this.width < 0 ){
 		this.width = 0;
 	}
@@ -35,4 +34,10 @@ Timer.prototype.update = function(now){
 	  this.timeRemaining--;
       this.lastTimerUpdateTime = now;
     }
+}
+
+Timer.prototype.addTime = function(addedTime) {
+	this.timeRemaining += addedTime;
+	var pixelsChangePerSecond = this.storedWidth/this.timeLength;
+	this.width += (pixelsChangePerSecond * addedTime);
 }

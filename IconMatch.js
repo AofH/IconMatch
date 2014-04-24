@@ -7,6 +7,7 @@ var _timer;
 var _stage;
 var _animationId;
 var _animationTime;
+var _numAddSeconds;
 
 var _requestAnimationFrame =  
         window.requestAnimationFrame ||
@@ -44,6 +45,7 @@ function initGame(difficulty){
 		y:GRID_PADDING 
     }
 
+    _numAddSeconds = NUM_ADD_SECONDS;
     _gameOver = false;
     initBoard(difficulty);
     _stage = GAME_STAGE;
@@ -93,6 +95,7 @@ function draw(now) {
 			}
 		} else {
 			drawTimer();
+			drawAddSecondsButton();
 			_requestAnimationFrame(draw);
 		}
 			
@@ -123,60 +126,64 @@ function getPosition(event) {
 }
 
 function parseMenuClick(x,y){
-	if(x >= EASY_BUTTON_X && x < EASY_BUTTON_X + MENU_BUTTON_LENGTH){
-		if( y >= EASY_BUTTON_Y && y < EASY_BUTTON_Y + MENU_BUTTON_HEIGHT){
-			initGame(EASY);
-		}
+	if(x >= EASY_BUTTON_X && x < EASY_BUTTON_X + MENU_BUTTON_LENGTH &&
+	   y >= EASY_BUTTON_Y && y < EASY_BUTTON_Y + MENU_BUTTON_HEIGHT){
+		initGame(EASY);
 	}
 
-	if(x >= MEDIUM_BUTTON_X && x < MEDIUM_BUTTON_X + MENU_BUTTON_LENGTH){
-		if( y >= MEDIUM_BUTTON_Y && y < MEDIUM_BUTTON_Y + MENU_BUTTON_HEIGHT){
-			initGame(MEDIUM);
-		}
+	if(x >= MEDIUM_BUTTON_X && x < MEDIUM_BUTTON_X + MENU_BUTTON_LENGTH &&
+	   y >= MEDIUM_BUTTON_Y && y < MEDIUM_BUTTON_Y + MENU_BUTTON_HEIGHT){
+		initGame(MEDIUM);
 	}
 
-	if(x >= HARD_BUTTON_X && x < HARD_BUTTON_X + MENU_BUTTON_LENGTH){
-		if( y >= HARD_BUTTON_Y && y < HARD_BUTTON_Y + MENU_BUTTON_HEIGHT){
-			initGame(HARD);
-		}
+	if(x >= HARD_BUTTON_X && x < HARD_BUTTON_X + MENU_BUTTON_LENGTH &&
+	   y >= HARD_BUTTON_Y && y < HARD_BUTTON_Y + MENU_BUTTON_HEIGHT){
+		initGame(HARD);
 	}
-
-
 }
 
 function parseGameClick(x,y){
 	if(_gameOver) {
-		if(x>= RETRY_BUTTON_X && x < RETRY_BUTTON_X + RETRY_BUTTON_WIDTH) {
-			if(y >= RETRY_BUTTON_Y && y < RETRY_BUTTON_Y +RETRY_BUTTON_HEIGHT)
-			{
-				_stage = MENU_STAGE;
-				draw();
-			}
-		}	
-
-	
+		if(x>= RETRY_BUTTON_X && x < RETRY_BUTTON_X + RETRY_BUTTON_WIDTH &&
+		   y >= RETRY_BUTTON_Y && y < RETRY_BUTTON_Y +RETRY_BUTTON_HEIGHT) {
+			_stage = MENU_STAGE;
+			draw();
+		}
+			
 	} else {
-		//Apply custom offset for box detection
-		x -= GRID_PADDING * 2 - 8; //Wierd magic 8 which makes detection work 100%
-		y -= GRID_PADDING * 2 - 8;
-		if ((x < CANVAS_WIDTH - GRID_PADDING * 2 && x > GRID_PADDING*2) && (y < CANVAS_HEIGHT - GRID_PADDING * 2 && y > GRID_PADDING*2)) {
-		    if(_board.isValidBox(x,y)){
-		    	if(_selectedBox.selected === false) {
-			    	_selectedBox.selected = true;
-			    	_selectedBox.x = x;
-			    	_selectedBox.y = y;
+		//Check to see if they clicked on the add seconds button
+		if(x >= ADD_SECONDS_BUTTON_X && x < ADD_SECONDS_BUTTON_X + ADD_SECONDS_BUTTON_WIDTH && 
+		   y >= ADD_SECONDS_BUTTON_Y && y < ADD_SECONDS_BUTTON_Y + ADD_SECONDS_BUTTON_HEIGHT){
+			if(_numAddSeconds > 0 ) {
+				_timer.addTime(SECONDS_ADDED);
+				_numAddSeconds--;
+			}
+			
+		//Check to see if the mouse click is within the grid as we need to add some offset for better box detection
+		} else if (x >= GRID_PADDING && x < GRID_WIDTH_BOUND + GRID_PADDING &&  
+			       y >= GRID_PADDING && y < GRID_HEIGHT_BOUND + GRID_PADDING){
+			console.log("")
+			//Apply custom offset for box detection
+			x -= GRID_PADDING * 2 - 8; //Wierd magic 8 which makes detection work 100%
+			y -= GRID_PADDING * 2 - 8;
+			if ((x < CANVAS_WIDTH - GRID_PADDING * 2 && x > GRID_PADDING*2) && (y < CANVAS_HEIGHT - GRID_PADDING * 2 && y > GRID_PADDING*2)) {
+			    if(_board.isValidBox(x,y)){
+			    	if(_selectedBox.selected === false) {
+				    	_selectedBox.selected = true;
+				    	_selectedBox.x = x;
+				    	_selectedBox.y = y;
 
-			    	
-		    	} else {
-		    		_selectedBox.selected = false;
-		    		//compare currentSelectoin
-		    		var validMove = _board.compareBoxes(_selectedBox.x,_selectedBox.y, x,y);
-		    		_gameOver = _board.empty();
+				    	
+			    	} else {
+			    		_selectedBox.selected = false;
+			    		//compare currentSelectoin
+			    		var validMove = _board.compareBoxes(_selectedBox.x,_selectedBox.y, x,y);
+			    		_gameOver = _board.empty();
 
-		    	}
+			    	}
+			    }
 		    }
-	    }
-
+		} 
     }
 }
 
@@ -282,4 +289,13 @@ function drawMenuButton(text,x,y,textX,textY){
 	_ctx.font = "bold 16px Arial";
 	_ctx.fillText(text, textX, textY);
 
+}
+
+function drawAddSecondsButton() {
+	_ctx.fillStyle = GREEN
+	_ctx.fillRect(ADD_SECONDS_BUTTON_X,ADD_SECONDS_BUTTON_Y,ADD_SECONDS_BUTTON_WIDTH,ADD_SECONDS_BUTTON_HEIGHT);
+	_ctx.fillStyle = BLACK;
+	_ctx.font = "bold 16px Arial";
+	_ctx.fillText("Add "+SECONDS_ADDED+" Seconds", ADD_SECONDS_BUTTON_X + 16,ADD_SECONDS_BUTTON_Y+25);
+	_ctx.fillText("x" + _numAddSeconds, ADD_SECONDS_BUTTON_X + ADD_SECONDS_BUTTON_WIDTH + 5, ADD_SECONDS_BUTTON_Y + 25);
 }
