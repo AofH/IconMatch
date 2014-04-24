@@ -7,7 +7,7 @@ function Timer(x,y,width,height,timeLength){
 	this.timeLength = timeLength;
 	this.timerColor = YELLOW;
 	this.timeRemaining = this.timeLength;
-
+	this.tempWidth = 0;
 
 	this.lastAnimationFrameTime = 0;
 	this.lastTimerUpdateTime = 0;
@@ -23,6 +23,7 @@ Timer.prototype.update = function(now){
 	if (isNaN(pixelsChangePerFrame)){
 		pixelsChangePerFrame = 0;
 	}
+
 	this.width -= pixelsChangePerFrame;
 	//If the width ever goes below 0, it continues drawing so this prevents it from doing so
 	if(this.width < 0 ){
@@ -40,4 +41,8 @@ Timer.prototype.addTime = function(addedTime) {
 	this.timeRemaining += addedTime;
 	var pixelsChangePerSecond = this.storedWidth/this.timeLength;
 	this.width += (pixelsChangePerSecond * addedTime);
+}
+
+Timer.prototype.timePassed = function() {
+	return this.timeLength - this.timeRemaining;
 }

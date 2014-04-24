@@ -8,6 +8,8 @@ var _stage;
 var _animationId;
 var _animationTime;
 var _numAddSeconds;
+var _numHints;
+var _currentHint;
 
 var _requestAnimationFrame =  
         window.requestAnimationFrame ||
@@ -45,7 +47,16 @@ function initGame(difficulty){
 		y:GRID_PADDING 
     }
 
+    _currentHint = {
+    	x:0,
+    	y:0,
+    	sx:0,
+    	sy:0,
+    	active:false
+    }
+
     _numAddSeconds = NUM_ADD_SECONDS;
+    _numHints = NUM_HINTS;
     _gameOver = false;
     initBoard(difficulty);
     _stage = GAME_STAGE;
@@ -67,39 +78,15 @@ function draw(now) {
 	if (_stage === MENU_STAGE) {
 		drawMenu();
 	} else if (_stage === GAME_STAGE) {
-		_animationTime = now;
-		_timer.update(now);
-
-		
-		drawBlocks();
-		drawGrid();
-		
-		
-		if(_selectedBox.selected === true){
-
-			var selectedBoxCoords = getTopLeftCorner(_selectedBox.x, _selectedBox.y);
-			drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
-		}
-		
-		if(_gameOver || _timer.timeRemaining <= 0)
-		{
-			_gameOver = true;
-			
-			if(_board.empty()){
-				
-				drawText("You Win!");
-				drawRetryButton();
-			} else {
-				drawText("You Lose!");
-				drawRetryButton();
-			}
-		} else {
-			drawTimer();
-			drawAddSecondsButton();
-			_requestAnimationFrame(draw);
-		}
-			
+		drawGame(now);	
 	}
+}
+
+function activeSecondsButton(){
+	var timePassed = _timer.timePassed();
+	if(timePassed > SECONDS_ADDED)
+		return true;
+	return false;
 }
 
 function getPosition(event) {
@@ -154,11 +141,18 @@ function parseGameClick(x,y){
 		//Check to see if they clicked on the add seconds button
 		if(x >= ADD_SECONDS_BUTTON_X && x < ADD_SECONDS_BUTTON_X + ADD_SECONDS_BUTTON_WIDTH && 
 		   y >= ADD_SECONDS_BUTTON_Y && y < ADD_SECONDS_BUTTON_Y + ADD_SECONDS_BUTTON_HEIGHT){
-			if(_numAddSeconds > 0 ) {
+			if(_numAddSeconds > 0 && activeSecondsButton() ) {
 				_timer.addTime(SECONDS_ADDED);
 				_numAddSeconds--;
 			}
-			
+		//Check to see if they clicked on the display hint button	
+		} else if ( x >= DISPLAY_HINT_BUTTON_X && x < DISPLAY_HINT_BUTTON_X + DISPLAY_HINT_BUTTON_WIDTH &&
+					y >= DISPLAY_HINT_BUTTON_Y && y < DISPLAY_HINT_BUTTON_Y + DISPLAY_HINT_BUTTON_HEIGHT) {
+			if(_numHints > 0) {
+				_currentHint = _board.getHint();
+				_numHints--;
+			}
+
 		//Check to see if the mouse click is within the grid as we need to add some offset for better box detection
 		} else if (x >= GRID_PADDING && x < GRID_WIDTH_BOUND + GRID_PADDING &&  
 			       y >= GRID_PADDING && y < GRID_HEIGHT_BOUND + GRID_PADDING){
@@ -178,12 +172,14 @@ function parseGameClick(x,y){
 			    		_selectedBox.selected = false;
 			    		//compare currentSelectoin
 			    		var validMove = _board.compareBoxes(_selectedBox.x,_selectedBox.y, x,y);
-
+						//Hint has been displayed long enough so deactivate it 			    		
+			    		_currentHint.active = false;
 
 			    		//check to see if the game is over by checking to ssee if the board is empty;
 			    		_gameOver = _board.empty();
 
 			    		if(!_gameOver) {
+			    			
 				    		var validMoveExists = _board.validMoveExists();
 				    		//console.log(validMoveExists);
 				    		//if no valid move exists, move the pieces around so that it creates a valid move
@@ -194,9 +190,6 @@ function parseGameClick(x,y){
 				    			}
 				    		}
 						}
-
-			    		
-
 			    	}
 			    }
 		    }
@@ -213,10 +206,77 @@ function getTopLeftCorner(x, y){
 	return topLeft;
 }
 
+/*---------------------------------------------------*/
+/* Draw Functions 									 */
+/*---------------------------------------------------*/
+
+function drawGame(now) {
+	_animationTime = now;
+	_timer.update(now);
+
+	
+	drawBlocks();
+	drawGrid();
+	
+	if(_currentHint.active) {
+		drawCurrentHintOutline();
+	}
+
+	
+	if(_selectedBox.selected === true){
+
+		var selectedBoxCoords = getTopLeftCorner(_selectedBox.x, _selectedBox.y);
+		drawSelectedBoxOutline(selectedBoxCoords.x, selectedBoxCoords.y);
+	}
+	
+	if(_gameOver || _timer.timeRemaining <= 0)
+	{
+		_gameOver = true;
+		
+		if(_board.empty()){
+			drawEndGameText("You Win!");
+			drawRetryButton();
+		} else {
+			drawEndGameText("You Lose!");
+			drawRetryButton();
+		}
+	} else {
+		drawTimer();
+		
+		if(activeSecondsButton() && _numAddSeconds > 0) {
+			drawAddSecondsButton(GREEN);
+		} else {
+			drawAddSecondsButton(GREY);
+		}
+
+		if(_numHints > 0) {
+			drawDisplayHintButton(GREEN);
+		} else {
+			drawDisplayHintButton(GREY);
+		}
+
+
+		_requestAnimationFrame(draw);
+	}
+}
+
 function drawSelectedBoxOutline(x, y){
 	_ctx.strokeStyle = BOX_SELECTION_COLOR;
 	_ctx.lineWidth = 4;
 	_ctx.strokeRect(x+1,y+1,SQUARE_LENGTH,SQUARE_LENGTH);
+}
+
+function drawCurrentHintOutline() {
+	var translatedX = _currentHint.x * SQUARE_LENGTH + GRID_PADDING;
+	var translatedY = _currentHint.y * SQUARE_LENGTH + GRID_PADDING;
+	var translatedSX = _currentHint.sx * SQUARE_LENGTH + GRID_PADDING;
+	var translatedSY = _currentHint.sy * SQUARE_LENGTH + GRID_PADDING;
+
+	_ctx.strokeStyle = HINT_COLOR;
+	_ctx.lineWidth = 4;
+	_ctx.strokeRect(translatedX + 1, translatedY + 1, SQUARE_LENGTH, SQUARE_LENGTH);
+	_ctx.strokeRect(translatedSX + 1, translatedSY + 1, SQUARE_LENGTH, SQUARE_LENGTH);
+
 }
 
 function drawBlocks(){
@@ -259,7 +319,7 @@ function drawTimer() {
 	_ctx.fillRect(_timer.x,_timer.y, _timer.width, _timer.height);
 }
 
-function drawText(text) {
+function drawEndGameText(text) {
 	_ctx.fillStyle = BLACK;
 	_ctx.font = "bold 16px Arial";
 	_ctx.fillText(text, GAME_OVER_TEXT_X, GAME_OVER_TEXT_Y);
@@ -308,11 +368,20 @@ function drawMenuButton(text,x,y,textX,textY){
 
 }
 
-function drawAddSecondsButton() {
-	_ctx.fillStyle = GREEN
+function drawAddSecondsButton(color) {
+	_ctx.fillStyle = color
 	_ctx.fillRect(ADD_SECONDS_BUTTON_X,ADD_SECONDS_BUTTON_Y,ADD_SECONDS_BUTTON_WIDTH,ADD_SECONDS_BUTTON_HEIGHT);
 	_ctx.fillStyle = BLACK;
 	_ctx.font = "bold 16px Arial";
 	_ctx.fillText("Add "+SECONDS_ADDED+" Seconds", ADD_SECONDS_BUTTON_X + 16,ADD_SECONDS_BUTTON_Y+25);
 	_ctx.fillText("x" + _numAddSeconds, ADD_SECONDS_BUTTON_X + ADD_SECONDS_BUTTON_WIDTH + 5, ADD_SECONDS_BUTTON_Y + 25);
 }
+
+function drawDisplayHintButton(color) {
+	_ctx.fillStyle = color
+	_ctx.fillRect(DISPLAY_HINT_BUTTON_X,DISPLAY_HINT_BUTTON_Y,DISPLAY_HINT_BUTTON_WIDTH,DISPLAY_HINT_BUTTON_HEIGHT);
+	_ctx.fillStyle = BLACK;
+	_ctx.font = "bold 16px Arial";
+	_ctx.fillText("Display Hint", DISPLAY_HINT_BUTTON_X + 28,DISPLAY_HINT_BUTTON_Y+25);
+	_ctx.fillText("x" + _numHints, DISPLAY_HINT_BUTTON_X + DISPLAY_HINT_BUTTON_WIDTH + 5, DISPLAY_HINT_BUTTON_Y + 25);
+}	

@@ -4,7 +4,8 @@ function Board(size){
 	this.gridBorderSize = ((GRID_SIZE - this.size) / 2);
 	this.interiorBoard = new Array();
 	this.fullBoard = new Array();
-	
+	this.hintList = new Array();
+
 	this.validMove = function (x, y, objX, objY, numBends, direction){
 		
 		var tempNumBends = numBends;
@@ -282,7 +283,7 @@ Board.prototype.validMoveExists = function () {
 				var matchingBlocks = this.findMatchedBlocks(i, j, this.fullBoard[i][j].id);
 				for(var k = 0; k < matchingBlocks.length; k++){
 					if(i === matchingBlocks[k].x && j === matchingBlocks[k].y) {
-						//do nothing if the matched block is the same as the one being compared to
+						//do nothing if the matched block has the same x,y coordinates as it would be the same block
 					} else {
 						moveExists = this.move(i,j,matchingBlocks[k].x,matchingBlocks[k].y);
 					}
@@ -320,4 +321,38 @@ Board.prototype.resetCurrentInterior = function() {
 			}
 		}
 	}
+}
+
+Board.prototype.getHint = function() {
+	this.hintList = new Array();
+	for (var i = this.gridBorderSize; i < GRID_SIZE-this.gridBorderSize; i++) {
+		for (var j = this.gridBorderSize; j < GRID_SIZE - this.gridBorderSize; j++)
+		{
+			if(this.fullBoard[i][j].id != EMPTY) {
+				var matchingBlocks = this.findMatchedBlocks(i, j, this.fullBoard[i][j].id);
+				for(var k = 0; k < matchingBlocks.length; k++){
+					if(i === matchingBlocks[k].x && j === matchingBlocks[k].y) {
+						//do nothing if the matched block has the same x,y coordinates as it would be the same block
+					} else {
+						if(this.move(i,j,matchingBlocks[k].x,matchingBlocks[k].y)) {
+							var hintAlreadyAdded = false;
+							for(var l =0 ; l < this.hintList.length; l++) {
+								if (this.hintList[l].x === matchingBlocks[k].x && this.hintList[l].y === matchingBlocks[k].y )
+								{
+									hintAlreadyAdded = true;
+								}
+							}
+							if(!hintAlreadyAdded) {
+								this.hintList.push({x:i, y:j, sx:matchingBlocks[k].x, sy:matchingBlocks[k].y,active:true})
+							}
+						}
+					}
+					
+				}
+			}
+		}
+	}
+	
+	this.hintList = this.shuffle(this.hintList)
+	return this.hintList[0];
 }
