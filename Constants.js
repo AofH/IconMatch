@@ -2,7 +2,7 @@
 var MENU_STAGE = "menu";
 var GAME_STAGE = "game";
 
-// Menu Coordinates and Button coordinates and sizez
+// Menu Coordinates and Button coordinates and sizes
 var SQUARE_LENGTH = 50;
 var GRID_SIZE = 10;
 var GRID_WIDTH_BOUND = SQUARE_LENGTH * GRID_SIZE; 
