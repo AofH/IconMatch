@@ -58,7 +58,9 @@ function initGame(difficulty){
     _numAddSeconds = NUM_ADD_SECONDS;
     _numHints = NUM_HINTS;
     _gameOver = false;
+
     initBoard(difficulty);
+    
     _stage = GAME_STAGE;
     draw();
 }
@@ -121,6 +123,7 @@ function parseMenuClick(x,y){
 }
 
 function parseGameClick(x,y){
+	//check to see if the game is over and retry button gets clicked
 	if(_gameOver) {
 		if(x>= RETRY_BUTTON_X && x < RETRY_BUTTON_X + RETRY_BUTTON_WIDTH &&
 		   y >= RETRY_BUTTON_Y && y < RETRY_BUTTON_Y +RETRY_BUTTON_HEIGHT) {
@@ -166,7 +169,7 @@ function parseGameClick(x,y){
 						//Hint has been displayed long enough so deactivate it 			    		
 			    		_currentHint.active = false;
 
-			    		//check to see if the game is over by checking to ssee if the board is empty;
+			    		//check to see if the game is over by checking to see if the board is empty;
 			    		_gameOver = _board.empty();
 
 			    		if(!_gameOver) {
